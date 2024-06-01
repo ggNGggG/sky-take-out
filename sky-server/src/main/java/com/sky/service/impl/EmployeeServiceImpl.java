@@ -1,7 +1,10 @@
 package com.sky.service.impl;
 
 import com.sky.constant.MessageConstant;
+import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
+import com.sky.context.BaseContext;
+import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.entity.Employee;
 import com.sky.exception.AccountLockedException;
@@ -9,9 +12,12 @@ import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
 import com.sky.mapper.EmployeeMapper;
 import com.sky.service.EmployeeService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+
+import java.time.LocalDateTime;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -39,7 +45,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         //密码比对
-        // TODO 后期需要进行md5加密，然后再进行比对
+        //  后期需要进行md5加密，然后再进行比对
+        //对前端传来的明文密码进行md5加密
+        password = DigestUtils.md5DigestAsHex(password.getBytes());
+
         if (!password.equals(employee.getPassword())) {
             //密码错误
             throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
@@ -52,6 +61,43 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         //3、返回实体对象
         return employee;
+    }
+    /*
+     * 新增员工
+     * */
+//    @Override  //有没有都行
+    public void save(EmployeeDTO employeeDTO) {
+        //传进来的是dto实体类  调用持久层  建议转成实体
+        Employee employee = new Employee();
+
+
+        //对象属性拷贝
+        BeanUtils.copyProperties(employeeDTO,employee);
+        //从employee DTO里拷贝属性到employee里面  注意方向  但是employee里边一部分是employeedto里边没有的  因此再继续设置
+
+        //设置账号的状态   默认正常状态为1  0表示锁定状态
+        employee.setStatus(StatusConstant.ENABLE);
+
+        //设置密码   默认密码123456  进行md5加密
+//        employee.setPassword(DigestUtils.md5DigestAsHex("123456".getBytes()));
+        employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
+        //   优雅   不用直接在里边写固定常量了
+
+        //设置当前记录的创建时间和修改时间
+        employee.setCreateTime(LocalDateTime.now());
+        employee.setUpdateTime(LocalDateTime.now());
+
+
+        //设置当前记录创建人id和修改人id
+//       现在是暂时固定死的数据    后期需要改成当前登录用户的id   已经改了
+        employee.setCreateUser(BaseContext.getCurrentId());
+        employee.setUpdateUser(BaseContext.getCurrentId());
+
+        //insert方法本来没有  后面再创建  将员工数据插入
+        employeeMapper.insert(employee);
+
+
+
     }
 
 }
