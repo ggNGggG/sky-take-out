@@ -121,5 +121,18 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return new PageResult(total,records);
     }
+/*
+* 启用禁用员工账号
+* */
+//    @Overridede
+    public void starorstop(Integer status, Long id) {
+        //修改成动态sql
+        Employee employee = new Employee();
+        employee.setStatus(status);
+        employee.setId(id);
+
+        employeeMapper.updata(employee);
+
+    }
 
 }

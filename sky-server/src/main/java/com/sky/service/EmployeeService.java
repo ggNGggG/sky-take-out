@@ -23,6 +23,8 @@ public interface EmployeeService {
     void save(EmployeeDTO employeeDTO);
 
     PageResult pageQuery(EmployeePageQueryDTO employeePageQueryDTO);
+
+    void starorstop(Integer status, Long id);
 //    sout
 
 }
